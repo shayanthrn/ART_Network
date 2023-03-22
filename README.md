@@ -1,2 +1,2 @@
 # ART_Network
-An ART Network to strore and recognize characters.
+An ART(Adaptive Resonance Theory) Network to strore and recognize characters.
