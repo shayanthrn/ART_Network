@@ -18,7 +18,7 @@ def cosin_sim(a,b):
     return np.dot(a, b)/(np.linalg.norm(a)*np.linalg.norm(b))
 
 def make_noisy(pattern):
-    indexes = random.sample(range(len(pattern)), (len(pattern)*5)//100)
+    indexes = random.sample(range(len(pattern)), (len(pattern)*20)//100)
     for index in indexes:
         if(pattern[index] == 1):
             pattern[index] = 0
@@ -51,13 +51,14 @@ for i in range(20):
     # plt.show()
 
 # train_set = flatten(clusters)
-vigilance = 0.9
+vigilance = 0.3
 learning_rate = 2
 
 
 U_weights = (1/65)*np.ones((20,64))
 D_weights = np.ones((64,20))
-
+pattern_names= ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T"]
+counter = 0
 for pattern in train_set:
     output = U_weights@pattern
     flag = 0
@@ -70,13 +71,47 @@ for pattern in train_set:
             #learn
             U_weights[max_index] = (learning_rate + I)/(learning_rate-1+norm_I)
             D_weights[:,max_index] = I
-            print(f"winner was cluster {max_index+1}")
-            print_pattern(pattern.reshape(8,8))
+            print(f"winner was cluster {max_index+1} for pattern {pattern_names[counter]}")
+            # print_pattern(pattern.reshape(8,8))
             flag = 1
             break
         else:
             output[max_index] = -1
     if(flag != 1):
         print("Pattern didn't assigned to a cluster")
+    counter +=1
+
+noisy = make_noisy(patterns[12].flatten())
+print_pattern(noisy.reshape(8,8))
+test_set = [noisy]
+for pattern in test_set:
+    output = U_weights@pattern
+    flag = 0
+    while np.any(output != -1):
+        max_index = np.argmax(output)
+        I = np.multiply(D_weights[:,max_index],pattern)
+        norm_I = np.count_nonzero(I == 1)
+        norm_p = np.count_nonzero(pattern == 1)
+        if((norm_I/norm_p)>vigilance):
+            #learn
+            U_weights[max_index] = (learning_rate + I)/(learning_rate-1+norm_I)
+            D_weights[:,max_index] = I
+            print(f"winner was cluster {max_index+1} for pattern noisy M")
+            # print_pattern(pattern.reshape(8,8))
+            flag = 1
+            break
+        else:
+            output[max_index] = -1
+    if(flag != 1):
+        print("Pattern didn't assigned to a cluster")
+    counter +=1
 
 
+
+fig = plt.figure(figsize=(8, 8))
+for k in range(1, 21):
+    img = D_weights[:,k-1].reshape(8,8)
+    fig.add_subplot(4,5,k)
+    plt.title(f"Cluster {k}")
+    plt.imshow(img)
+plt.show()
